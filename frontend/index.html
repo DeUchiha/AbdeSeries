@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AbdeSeries</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+
+<!-- ══════════════════ HEADER ══════════════════ -->
+<header>
+  <div class="header-top">
+    <div class="logo" onclick="goHome()">
+      <div class="logo-icon">📺</div>
+      <div class="logo-text">ABDE<em>SERIES</em></div>
+    </div>
+    <div class="header-right" id="headerRight">
+      <button class="hbtn" onclick="openModal('auth','login')">Log in</button>
+      <button class="hbtn primary" onclick="openModal('auth','signup')">Sign up</button>
+    </div>
+  </div>
+  <nav class="cat-nav">
+    <button class="cat-btn active" onclick="setCategory('all')"   id="cat-all">🌐 All</button>
+    <button class="cat-btn" onclick="setCategory('series')"       id="cat-series">📺 Series</button>
+    <button class="cat-btn" onclick="setCategory('anime')"        id="cat-anime">⛩️ Anime</button>
+    <button class="cat-btn" onclick="setCategory('cartoon')"      id="cat-cartoon">🎨 Cartoons</button>
+    <button class="cat-btn" onclick="setCategory('movie')"        id="cat-movie">🎬 Movies</button>
+    <button class="cat-btn" onclick="goPage('charts')"            id="cat-charts">🏆 Top Charts</button>
+    <button class="cat-btn" onclick="goLists()"                   id="cat-lists">❤️ My Lists</button>
+  </nav>
+</header>
+
+<!-- ══════════════════ MODALS ══════════════════ -->
+
+<!-- AUTH -->
+<div class="overlay" id="modal-auth" onclick="overlayClose(event,'auth')">
+ <div class="modal">
+  <button class="mc" onclick="closeModal('auth')">✕</button>
+  <div class="modal-logo">📺 <span>AbdeSeries</span></div>
+  <p class="modal-sub">Track every episode. Rate every show.</p>
+  <div class="mtabs">
+   <button class="mtab active" id="atab-login"  onclick="switchAuthTab('login')">Log In</button>
+   <button class="mtab"        id="atab-signup" onclick="switchAuthTab('signup')">Sign Up</button>
+  </div>
+  <div class="err-msg" id="authErr"></div>
+  <div class="mform active" id="aform-login">
+   <div class="field"><label>Email</label><input type="email" id="l-email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+   <div class="field"><label>Password</label><input type="password" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+   <button class="mbtn" onclick="doLogin()">Log In</button>
+  </div>
+  <div class="mform" id="aform-signup">
+   <div class="field"><label>Username</label><input type="text" id="s-name" placeholder="your_username"></div>
+   <div class="field"><label>Email</label><input type="email" id="s-email" placeholder="you@example.com"></div>
+   <div class="field"><label>Password</label><input type="password" id="s-pass" placeholder="Min. 6 characters"></div>
+   <button class="mbtn" onclick="doSignup()">Create Account</button>
+  </div>
+ </div>
+</div>
+
+<!-- PROFILE / SETTINGS -->
+<div class="overlay" id="modal-profile" onclick="overlayClose(event,'profile')">
+ <div class="modal modal-wide">
+  <button class="mc" onclick="closeModal('profile')">✕</button>
+  <div id="profileContent"></div>
+ </div>
+</div>
+
+<!-- REVIEW MODAL -->
+<div class="overlay" id="modal-review" onclick="overlayClose(event,'review')">
+ <div class="modal">
+  <button class="mc" onclick="closeModal('review')">✕</button>
+  <h2 style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:.07em;margin-bottom:18px">Write a Review</h2>
+  <div class="err-msg" id="reviewErr"></div>
+  <div class="field">
+   <label>Your Rating (1–10)</label>
+   <div class="star-row" id="starRow"></div>
+  </div>
+  <div class="field"><label>Review Title (optional)</label><input type="text" id="rev-title" placeholder="e.g. A masterpiece of storytelling" maxlength="120"></div>
+  <div class="field"><label>Your Review (optional)</label><textarea id="rev-body" placeholder="Share your thoughts…" maxlength="2000" rows="5"></textarea></div>
+  <label class="check-row"><input type="checkbox" id="rev-spoiler"> Contains spoilers</label>
+  <button class="mbtn" style="margin-top:16px" onclick="submitReview()">Publish Review</button>
+ </div>
+</div>
+
+<!-- RATE EPISODE MODAL -->
+<div class="overlay" id="modal-eprate" onclick="overlayClose(event,'eprate')">
+ <div class="modal" style="max-width:360px">
+  <button class="mc" onclick="closeModal('eprate')">✕</button>
+  <h2 style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.07em;margin-bottom:4px" id="eprateTitle">Rate Episode</h2>
+  <p style="color:var(--m2);font-size:.82rem;margin-bottom:18px" id="eprateSubtitle"></p>
+  <div class="star-row" id="epStarRow"></div>
+  <div class="field" style="margin-top:16px"><label>Quick Note (optional)</label><input type="text" id="ep-note" placeholder="e.g. Best fight scene ever" maxlength="500"></div>
+  <button class="mbtn" style="margin-top:14px" onclick="submitEpRating()">Save Rating</button>
+ </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+<!-- TOOLTIP -->
+<div class="hmtt" id="hmtt"><div class="tt-ep" id="ttEp"></div><div class="tt-title" id="ttTitle"></div><div class="tt-r" id="ttR"></div><div class="tt-v" id="ttV"></div><a class="tt-imdb" id="ttImdb" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 Open on IMDB</a></div>
+
+<!-- ══════════════════ MAIN ══════════════════ -->
+<main>
+
+ <!-- HOME -->
+ <div class="page active" id="page-home">
+  <div class="hero">
+   <div class="hero-glow"></div>
+   <div class="eyebrow"><span></span>IMDB Episode Ratings</div>
+   <h1>Every Episode.<br><em>Every Rating.</em></h1>
+   <p>Heatmaps, charts, cast info & community reviews for any series, anime, cartoon or movie.</p>
+   <div class="sbox">
+    <span class="sicon">⌕</span>
+    <input class="sinput" id="homeSearch" type="text" placeholder="Search any title…" autocomplete="off">
+    <button class="sbtn" onclick="doSearch()">Explore →</button>
+    <div class="drop" id="homeDrop"></div>
+   </div>
+  </div>
+  <div class="sec-hd"><div class="sec-title"><span class="sdot"></span><span id="trendLabel">Trending Now</span></div></div>
+  <div class="tgrid" id="trendGrid"></div>
+ </div>
+
+ <!-- TOP CHARTS -->
+ <div class="page" id="page-charts">
+  <div class="page-hero"><h2 id="chartsPageTitle">🏆 Top Charts</h2><p id="chartsPageSub">Highest rated titles by our community.</p></div>
+  <div class="charts-tabs">
+   <button class="ltab active" onclick="switchChartsTab('top')">⭐ Top Rated</button>
+   <button class="ltab" onclick="switchChartsTab('trending')">🔥 This Week</button>
+   <button class="ltab" onclick="switchChartsTab('myratings')">🎯 My Ratings</button>
+   <button class="ltab" onclick="switchChartsTab('epratings')">🎬 Ep. Ratings</button>
+  </div>
+  <div id="chartsGrid" class="tgrid"></div>
+ </div>
+
+ <!-- MY LISTS -->
+ <div class="page" id="page-lists">
+  <div class="page-hero"><h2>My Lists</h2><p>All your saved titles.</p></div>
+  <div id="listsContent"></div>
+ </div>
+
+ <!-- SHOW PAGE -->
+ <div class="page" id="page-show">
+  <button class="show-back" onclick="goBack()">← Back</button>
+
+  <div class="show-hero" id="showHero" style="display:none">
+   <img class="show-poster" id="showPoster" src="" alt="">
+   <div class="show-info">
+    <div class="show-title" id="showTitle"></div>
+    <div class="badges" id="showBadges"></div>
+    <div class="show-plot" id="showPlot"></div>
+    <div class="action-row" id="actionRow"></div>
+   </div>
+  </div>
+
+  <div class="stats" id="statStrip" style="display:none"></div>
+
+  <div class="show-tabs">
+   <button class="stab active" onclick="switchShowTab('heatmap')">🟩 Heatmap</button>
+   <button class="stab" onclick="switchShowTab('chart')">📈 Chart</button>
+   <button class="stab" onclick="switchShowTab('compare')">📊 Compare</button>
+   <button class="stab" onclick="switchShowTab('cast')">🎭 Cast</button>
+   <button class="stab" onclick="switchShowTab('reviews')">💬 Reviews</button>
+  </div>
+
+  <div class="loader" id="showLoader"><div class="spinner"></div>Loading…</div>
+
+  <!-- HEATMAP -->
+  <div class="tpanel active" id="panel-heatmap">
+   <div class="card" id="heatCard" style="display:none">
+    <div class="cal" style="background:linear-gradient(90deg,#22d37a,#f5c542,#ff4757)"></div>
+    <div class="card-hd">
+     <div class="card-title">FULL SERIES HEATMAP</div>
+     <div class="cmeta">Each square = 1 episode · Click to open chart</div>
+    </div>
+    <div class="hm-wrap"><div id="hmGrid"></div></div>
+    <div class="hm-legend" id="hmLegend"></div>
+   </div>
+  </div>
+
+  <!-- CHART -->
+  <div class="tpanel" id="panel-chart">
+   <div class="card" id="chartCard" style="display:none">
+    <div class="cal" style="background:linear-gradient(90deg,var(--ac),transparent)"></div>
+    <div class="card-hd">
+     <div class="card-title" id="chartTitle">EPISODE RATINGS</div>
+     <div class="cmeta">
+      <span><span class="legd" style="background:var(--ac)"></span>IMDB</span>
+      <span><span class="legd" style="background:#a78bfa"></span>Mine</span>
+     </div>
+    </div>
+    <div class="s-nav" id="sNavChart"></div>
+    <div class="chart-controls">
+     <span class="ep-count-label" id="epCountLabel"></span>
+     <button class="cc-btn" onclick="zoomChart(-8)">− Zoom</button>
+     <button class="cc-btn" onclick="zoomChart(8)">+ Zoom</button>
+     <button class="cc-btn on" id="smoothBtn" onclick="toggleSmooth()">Smooth</button>
+    </div>
+    <div class="chart-scroll" id="chartScroll">
+     <div class="chart-inner" id="chartInner"><canvas id="lineChart"></canvas></div>
+    </div>
+    <div class="chart-hint" id="chartHint"></div>
+   </div>
+  </div>
+
+  <!-- COMPARE -->
+  <div class="tpanel" id="panel-compare">
+   <div class="card" id="compareCard" style="display:none">
+    <div class="cal" style="background:linear-gradient(90deg,var(--bl),transparent)"></div>
+    <div class="card-hd"><div class="card-title">SEASON COMPARISON</div></div>
+    <div class="cbars" id="cbars"></div>
+   </div>
+  </div>
+
+  <!-- CAST -->
+  <div class="tpanel" id="panel-cast">
+   <div class="card" id="castCard" style="display:none">
+    <div class="cal" style="background:linear-gradient(90deg,#c084fc,transparent)"></div>
+    <div class="card-hd"><div class="card-title">CAST & CHARACTERS</div></div>
+    <div class="cast-grid" id="castGrid"></div>
+   </div>
+  </div>
+
+  <!-- REVIEWS -->
+  <div class="tpanel" id="panel-reviews">
+   <div class="card">
+    <div class="cal" style="background:linear-gradient(90deg,var(--go),transparent)"></div>
+    <div class="card-hd">
+     <div class="card-title">COMMUNITY REVIEWS</div>
+     <button class="cc-btn on" onclick="openReviewModal()" id="writeReviewBtn">+ Write Review</button>
+    </div>
+    <div id="reviewsList"><div class="loader-inline">Loading reviews…</div></div>
+   </div>
+  </div>
+
+ </div><!-- /page-show -->
+
+ <!-- STATS PAGE -->
+ <div class="page" id="page-stats">
+  <div class="page-hero"><h2>📊 My Stats</h2><p>Your personal viewing statistics.</p></div>
+  <div id="statsContent"></div>
+ </div>
+
+
+ <!-- EPISODE PAGE -->
+ <div class="page" id="page-episode">
+  <button class="show-back" onclick="goBack()">← Back</button>
+  <div id="epPageContent">
+    <div class="loader" id="epLoader"><div class="spinner"></div>Loading episode…</div>
+  </div>
+ </div>
+
+</main>
+
+<script src="assets/js/api.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
